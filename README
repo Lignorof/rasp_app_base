@@ -1,0 +1,3 @@
+comando para compilação
+
+g++ app_base.cpp -lmosquitto -lpigpio
