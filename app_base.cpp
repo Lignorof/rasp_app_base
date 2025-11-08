@@ -6,13 +6,13 @@
 #include <unistd.h>
 
 //declaração das macro do MQTT
-#define IP_BROKER "192.168.X.X"
+#define IP_BROKER "192.168.0.213"
 #define PORT_BROKER 1883
 #define CLIENTE_ID "PTZ_SERVO"
 
 //declaração das macros dos tópicos
 #define TOPICO_X "/carro/camera/pan/"
-#define TOPICO_Y "/carro/camera/tilt"
+#define TOPICO_Y "/carro/camera/tilt/"
 
 //declaração das macros dos pinos
 #define PINO_X 2
@@ -103,9 +103,14 @@ void pan_control(bool side) {
 	if (side == true) {
 		int pulse = angleToPulse(i += 10);
 		gpioServo(PINO_X, pulse);
+		std::cout << "Pan para direita" << std::endl;
+		usleep(200000);
 	} else if (side == false) {
 		int pulse = angleToPulse(i -= 10);
 		gpioServo(PINO_X, pulse);
+		std::cout << "Pan para direita" << std::endl;
+		usleep(200000);
+
 	}
 }
 
