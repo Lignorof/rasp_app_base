@@ -12,7 +12,7 @@
 
 //declaração das macros dos tópicos
 #define TOPICO_X "/carro/camera/pan/"
-#define TOPICO_Y "/carro/camera/tilt"
+#define TOPICO_Y "/carro/camera/tilt/"
 
 //declaração das macros dos pinos
 #define PINO_X 2
@@ -21,7 +21,14 @@
 
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
 void setup_ptz(int servos[], int numServos);
-void pan_control(bool side);
+
+int angleToPulse(int angle) { 
+	int pulse = 1000 + (angle * 1000) / 180;
+	if (pulse < 1000) pulse = 1000;
+	if (pulse > 2000) pulse = 2000;
+	return pulse;
+};
+
 
 int main(int argc, char** argv) {
     std::cout << "inicializando módulo" << std::endl;
@@ -31,18 +38,18 @@ int main(int argc, char** argv) {
         std::cerr << "Erro ao inicializar pigpio!" << std::endl;
         return 1;
     }
-
+    
     // Defina os GPIOs usados pelos servos
     int servos[] = {PINO_X, PINO_Y};
     int numServos = sizeof(servos) / sizeof(servos[0]);
 
     // Configura os pinos
-    for (int i = 0; i < numServos; i++) {
+    for (int = 0; i < numServos; i++) {
 	    gpioSetMode(servos[i], PI_OUTPUT);
 	}
 
-    // Self-test básico.
-
+    setup_ptz(); // executa self-test
+    //std::thread(exec_servos); 
 
     mosquitto_lib_init();
 
@@ -56,7 +63,7 @@ int main(int argc, char** argv) {
     // Define callback
     mosquitto_message_callback_set(mosq, on_message);
 
-    // Conecta ao broker 
+    // Conecta ao broker
     if(mosquitto_connect(mosq, IP_BROKER, PORT_BROKER, 60) != MOSQ_ERR_SUCCESS){
         std::cout << "Erro ao conectar no broker\n";
         return 1;
@@ -73,38 +80,29 @@ int main(int argc, char** argv) {
     mqtt_thread.join();
     mosquitto_destroy(mosq);
     mosquitto_lib_cleanup();
+    //std::thread.join();
 
     gpioTerminate();
     return 0;
 }
 
+void setup_ptz(int servos[], int numServos) {
+	int pulse = angleToPulse(90);
+		for (int i = 0; i < numServos; i++) {
+			gpioServo(servos[i], pulse);
+		}
+}
+
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message){
     if (std::string(message->topic) == TOPICO_X) {
-	if (std::string((char *)message->topic) == "increase") {
-		std::cout << "Controlando eixo X Pan" << std::endl;
-		pan_control(bool side);
-	} else if (std::string((char *)message->topic) == "decrease") {
-			gpioServo(servos[PINO_X], (pulse += 10))
-	}
-		
+	std::cout << "Controlando eixo X Pan" << std:endl;
+	// exec	
 
     } else if (std::string(message->topic) == TOPICO_Y) {
-	
+	std:cout << "Controlando eixo Y Tilt" << std:endl;
+
+
     }
 }
 
 
-int angleToPulse(int angle) { 
-	int pulse = 1000 + (angle * 1000) / 180;
-	if (pulse < 1000) pulse = 1000;
-	if (pulse > 2000) pulse = 2000;
-	return pulse;
-};
-
-void pan_control(bool side, int servos[], int pulse) {
-	if (side == 0) {
-		int i;
-		int pulse = angleToPulse(i += 10);
-		gpioServo(servos[PINO_X], pulse);
-	}
-}
