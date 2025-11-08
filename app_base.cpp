@@ -20,8 +20,13 @@
 
 
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
-void setup_ptz(int servos[], int numServos);
+void setup_ptz();
 void pan_control(bool side);
+
+
+
+void pan_control(bool side);
+
 
 int main(int argc, char** argv) {
     std::cout << "inicializando módulo" << std::endl;
@@ -32,16 +37,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Defina os GPIOs usados pelos servos
-    int servos[] = {PINO_X, PINO_Y};
-    int numServos = sizeof(servos) / sizeof(servos[0]);
-
-    // Configura os pinos
-    for (int i = 0; i < numServos; i++) {
-	    gpioSetMode(servos[i], PI_OUTPUT);
-	}
-
-    // Self-test básico.
+	setup_ptz();
 
 
     mosquitto_lib_init();
@@ -80,11 +76,12 @@ int main(int argc, char** argv) {
 
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message){
     if (std::string(message->topic) == TOPICO_X) {
-	if (std::string((char *)message->topic) == "increase") {
+	if (std::string((char *)message->payload) == "increase") {
 		std::cout << "Controlando eixo X Pan" << std::endl;
-		pan_control(bool side);
-	} else if (std::string((char *)message->topic) == "decrease") {
-			gpioServo(servos[PINO_X], (pulse += 10))
+		pan_control(true);
+	} else if (std::string((char *)message->payload) == "decrease") {
+		pan_control(false);
+		//gpioServo(servos[PINO_X], (pulse += 10))
 	}
 		
 
@@ -101,10 +98,32 @@ int angleToPulse(int angle) {
 	return pulse;
 };
 
-void pan_control(bool side, int servos[], int pulse) {
-	if (side == 0) {
-		int i;
+void pan_control(bool side) {
+	int i;
+	if (side == true) {
 		int pulse = angleToPulse(i += 10);
-		gpioServo(servos[PINO_X], pulse);
+		gpioServo(PINO_X, pulse);
+	} else if (side == false) {
+		int pulse = angleToPulse(i -= 10);
+		gpioServo(PINO_X, pulse);
 	}
+}
+
+void setup_ptz() {
+
+    // Defina os GPIOs usados pelos servos
+    int servos[] = {PINO_X, PINO_Y};
+    int numServos = sizeof(servos) / sizeof(servos[0]);
+
+    // Configura os pinos
+    for (int i = 0; i < numServos; i++) {
+	    gpioSetMode(servos[i], PI_OUTPUT);
+	}
+
+    // Retorna ao centro:
+	int pulse = angleToPulse(90);
+	for (int i = 0; i < numServos; i++) {
+		gpioServo(servos[i], pulse);
+	}
+	usleep(200000);
 }
