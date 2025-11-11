@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 //declaração das macro do MQTT
-#define IP_BROKER "192.168.0.213"
+#define IP_BROKER "192.168.0.206"
 #define PORT_BROKER 1883
 #define CLIENTE_ID "PTZ_SERVO"
 
@@ -22,10 +22,7 @@
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
 void setup_ptz();
 void pan_control(bool side);
-
-
-
-void pan_control(bool side);
+void tilt_control(bool side);
 
 
 int main(int argc, char** argv) {
@@ -86,7 +83,13 @@ void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_m
 		
 
     } else if (std::string(message->topic) == TOPICO_Y) {
-	
+		if (std::string((char *)message->payload) == "increase") {
+		std::cout << "Controlando eixo Y Tilt" << std::endl;
+		tilt_control(true);
+	} else if (std::string((char *)message->payload) == "decrease") {
+		tilt_control(false);
+	}
+
     }
 }
 
@@ -99,16 +102,32 @@ int angleToPulse(int angle) {
 };
 
 void pan_control(bool side) {
-	int i;
+	static int angle = 90;  //inicia em 90 graus
 	if (side == true) {
-		int pulse = angleToPulse(i += 10);
+		int pulse = angleToPulse(angle += 10);
 		gpioServo(PINO_X, pulse);
 		std::cout << "Pan para direita" << std::endl;
 		usleep(200000);
 	} else if (side == false) {
-		int pulse = angleToPulse(i -= 10);
+		int pulse = angleToPulse(angle -= 10);
 		gpioServo(PINO_X, pulse);
-		std::cout << "Pan para direita" << std::endl;
+		std::cout << "Pan para esquerda" << std::endl;
+		usleep(200000);
+
+	}
+}
+
+void tilt_control(bool side) {
+	static int angle = 90;  //inicia em 90 graus
+	if (side == true) {
+		int pulse = angleToPulse(angle += 10);
+		gpioServo(PINO_Y, pulse);
+		std::cout << "Tit para cima" << std::endl;
+		usleep(200000);
+	} else if (side == false) {
+		int pulse = angleToPulse(angle -= 10);
+		gpioServo(PINO_Y, pulse);
+		std::cout << "Pan para baixo" << std::endl;
 		usleep(200000);
 
 	}
